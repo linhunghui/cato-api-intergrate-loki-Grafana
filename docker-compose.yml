@@ -1,0 +1,57 @@
+version: "3.0"
+
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana-for-loki
+    hostname: grafana-for-loki
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    env_file:
+      - ./grafana/config.monitoring
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    hostname: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    hostname: promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/logs:/var/logs
+      - ./promtail:/etc/promtail/config
+      - ./cato:/logs
+    command: -config.file=/etc/promtail/config/promtail-config.yml
+  Python:
+    image: python:3.8.5-alpine3.12
+    container_name: python
+    hostname: python
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./cato:/app
+    command: sh script.sh
