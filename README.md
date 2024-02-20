@@ -28,6 +28,7 @@ git clone https://github.com/linhunghui/cato-api-intergrate-loki-Grafana.git
 ### Step 2 Put your API key and CMA ID in the ./cato/script.sh
 
 ![](./img/script.png)
+
 Softly remind the option -f means Stop execution if a fetch returns less than this number of events (default=1) 
 
 ### Step 3 Start the docker compose
